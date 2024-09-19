@@ -86,17 +86,9 @@ func TestUnmarshal(t *testing.T) {
 		content []byte
 		v       any
 	}
-	var result1 struct {
+	type numberResult struct {
 		String string  `json:"string"`
 		Number float64 `json:"number"`
-	}
-	var result2 struct {
-		String string  `json:"string"`
-		Number float64 `json:"number"`
-	}
-	var result3 struct {
-		String  string `json:"string"`
-		Integer int    `json:"integer"`
 	}
 	tests := []struct {
 		name    string
@@ -112,7 +104,7 @@ func TestUnmarshal(t *testing.T) {
 				},
 			},
 			content: []byte(`{"string":"abc","number":123.4}`),
-			v:       &result1,
+			v:       &(numberResult{}),
 		}, false},
 		{"", args{
 			schema: jsonschema.Definition{
@@ -124,31 +116,29 @@ func TestUnmarshal(t *testing.T) {
 				Required: []string{"string", "number"},
 			},
 			content: []byte(`{"string":"abc"}`),
-			v:       result2,
+			v:       numberResult{},
 		}, true},
 		{"validate integer", args{
 			schema: jsonschema.Definition{
 				Type: jsonschema.Object,
 				Properties: map[string]jsonschema.Definition{
-					"string":  {Type: jsonschema.String},
 					"integer": {Type: jsonschema.Integer},
 				},
-				Required: []string{"string", "integer"},
+				Required: []string{"integer"},
 			},
-			content: []byte(`{"string":"abc","integer":123}`),
-			v:       &result3,
+			content: []byte(`{"integer":123}`),
+			v:       &(struct{ integer int }{}),
 		}, false},
 		{"validate integer failed", args{
 			schema: jsonschema.Definition{
 				Type: jsonschema.Object,
 				Properties: map[string]jsonschema.Definition{
-					"string":  {Type: jsonschema.String},
 					"integer": {Type: jsonschema.Integer},
 				},
-				Required: []string{"string", "integer"},
+				Required: []string{"integer"},
 			},
-			content: []byte(`{"string":"abc","integer":123.4}`),
-			v:       &result3,
+			content: []byte(`{"integer":123.4}`),
+			v:       &(struct{ integer int }{}),
 		}, true},
 	}
 	for _, tt := range tests {
